@@ -5,6 +5,6 @@
 
 **COMING SOON** - A Golang library for Etebase
 
-**Star** and **watch** to show your intreset and get notified once it's ready!
+**Star** and **watch** to show your interest and get notified once it's ready!
 
 [![Chat with us](https://img.shields.io/badge/chat-IRC%20|%20Matrix%20|%20Web-blue.svg)](https://www.etebase.com/community-chat/)
