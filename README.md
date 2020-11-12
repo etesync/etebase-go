@@ -3,6 +3,6 @@
   <h1 align="center">Etebase - Encrypt Everything</h1>
 </p>
 
-COMING SOON - A Golang library for Etebase
+**COMING SOON** - A Golang library for Etebase
 
-Star and watch to show your intereset and get notified once it's ready!
+**Star** and **watch** to show your intereset and get notified once it's ready!
