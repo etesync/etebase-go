@@ -27,6 +27,10 @@ func GenrateKeyPair(seed []byte) ([]byte, []byte) {
 	return priv.Public().(ed25519.PublicKey), priv
 }
 
+func Sign(priv []byte, msg []byte) []byte {
+	return ed25519.Sign(priv, msg)
+}
+
 func resizeChachaKey(key []byte) []byte {
 	s := chacha20poly1305.KeySize
 	l := len(key)
