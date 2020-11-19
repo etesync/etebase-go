@@ -1,7 +1,6 @@
 package etebase
 
 import (
-	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,8 +27,12 @@ func TestClient(t *testing.T) {
 	})
 
 	t.Run("Login", func(t *testing.T) {
-		resp, err := acc.Login(user.Username, password)
-		require.NoError(t, err)
-		log.Printf("resp = %+v\n", resp.Token)
+		require.NoError(t,
+			acc.Login(user.Username, password),
+		)
+	})
+
+	t.Run("Play", func(t *testing.T) {
+		require.NoError(t, acc.Play())
 	})
 }

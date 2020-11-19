@@ -3,6 +3,7 @@ package etebase
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -10,6 +11,10 @@ import (
 	"strings"
 
 	"github.com/vmihailenco/msgpack"
+)
+
+var (
+	ErrNoToken = errors.New("account has no token set, use Signup or Login first")
 )
 
 type ClientOptions struct {
@@ -28,12 +33,18 @@ var DefaultClientOptions = ClientOptions{
 
 type Client struct {
 	baseUrl string
+	token   string
 }
 
 func NewClient(name string, opts ClientOptions) *Client {
 	return &Client{
 		baseUrl: opts.baseUrl(name),
 	}
+}
+
+func (c Client) WithToken(token string) *Client {
+	c.token = token
+	return &c
 }
 
 func (c *Client) url(path string) string {
@@ -45,18 +56,27 @@ func (c *Client) url(path string) string {
 }
 
 func (c *Client) Post(path string, v interface{}) (*http.Response, error) {
-	log.Printf("POST %s", c.url(path))
+	log.Printf("POST %s", path)
 	body, err := msgpack.Marshal(v)
 	if err != nil {
 		return nil, err
 	}
 
-	return http.Post(c.url(path), "application/msgpack", bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", c.url(path), bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/msgpack")
+	if t := c.token; t != "" {
+		req.Header.Set("Authorization", "Token "+t)
+	}
+
+	return http.DefaultClient.Do(req)
 }
 
 type Account struct {
-	client   *Client
-	password string
+	client *Client
+	token  string
 
 	salt                []byte
 	mainKey, accountKey []byte
@@ -73,8 +93,6 @@ func NewAccount(c *Client) *Account {
 }
 
 func (acc *Account) initKeys(password string) {
-	acc.password = password
-
 	acc.salt = Rand(32)
 	acc.mainKey = DeriveKey(acc.salt, password)
 	acc.accountKey = Rand(32)
@@ -145,14 +163,12 @@ func (acc *Account) loginChallenge(username string) (*LoginChallengeResponse, er
 	return &challenge, nil
 }
 
-func (acc *Account) Login(username, password string) (*LoginResponse, error) {
-	if acc.password == "" {
-		acc.initKeys(password)
-	}
+func (acc *Account) Login(username, password string) error {
+	acc.initKeys(password)
 
 	challenge, err := acc.loginChallenge(username)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	buf, err := msgpack.Marshal(&LoginRequest{
@@ -162,7 +178,7 @@ func (acc *Account) Login(username, password string) (*LoginResponse, error) {
 		Action:    "login",
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	//	mainKey := DeriveKey(challenge.Salt, password)
@@ -172,14 +188,36 @@ func (acc *Account) Login(username, password string) (*LoginResponse, error) {
 		Signature []byte `msgpack:"signature"`
 	}{buf, sig})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer resp.Body.Close()
 
 	var loginResponse LoginResponse
 	if err := json.NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
-		return nil, err
+		return err
+	}
+	acc.token = loginResponse.Token
+
+	return nil
+}
+
+func (acc *Account) Play() error {
+	if acc.token == "" {
+		return ErrNoToken
 	}
 
-	return &loginResponse, nil
+	resp, err := acc.client.WithToken(acc.token).Post("/collection/", nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	log.Printf("resp.Status = %+v\n", resp.Status)
+
+	var body interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		return err
+	}
+	log.Printf("body = %+v\n", body)
+
+	return err
 }
