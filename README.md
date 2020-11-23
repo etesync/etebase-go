@@ -3,8 +3,18 @@
   <h1 align="center">Etebase - Encrypt Everything</h1>
 </p>
 
-**COMING SOON** - A Golang library for Etebase
+A (work in progress) Go library for Etebase
+
+[![Chat with us](https://img.shields.io/badge/chat-IRC%20|%20Matrix%20|%20Web-blue.svg)](https://www.etebase.com/community-chat/)
 
 **Star** and **watch** to show your interest and get notified once it's ready!
 
-[![Chat with us](https://img.shields.io/badge/chat-IRC%20|%20Matrix%20|%20Web-blue.svg)](https://www.etebase.com/community-chat/)
+## TODO:
+- [ ] Authentication
+  - [x] Signup
+  - [x] Login
+  - [ ] Logout
+  - [ ] Password Change
+- [ ] Collections
+- [ ] Items
+- [ ] Invitations
