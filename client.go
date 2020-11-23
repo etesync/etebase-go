@@ -101,7 +101,9 @@ func (acc *Account) initKeys(password string) {
 }
 
 func (acc *Account) Signup(user User, password string) error {
-	acc.initKeys(password)
+	if acc.salt == nil {
+		acc.initKeys(password)
+	}
 
 	encrypedContent, err := Encrypt(acc.mainKey, append(acc.accountKey, acc.idPriv...))
 	if err != nil {
@@ -164,7 +166,9 @@ func (acc *Account) loginChallenge(username string) (*LoginChallengeResponse, er
 }
 
 func (acc *Account) Login(username, password string) error {
-	acc.initKeys(password)
+	if acc.salt == nil {
+		acc.initKeys(password)
+	}
 
 	challenge, err := acc.loginChallenge(username)
 	if err != nil {
