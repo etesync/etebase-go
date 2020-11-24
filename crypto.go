@@ -60,7 +60,7 @@ func Encrypt(key []byte, msg []byte) ([]byte, error) {
 	return aead.Seal(nonce, nonce, msg, nil), nil
 }
 
-func Decript(key []byte, msg []byte) ([]byte, error) {
+func Decrypt(key []byte, msg []byte) ([]byte, error) {
 	key = resizeChachaKey(key)
 	aead, err := chacha20poly1305.NewX(key)
 	if err != nil {

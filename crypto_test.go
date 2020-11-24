@@ -37,7 +37,7 @@ func TestCrytoEncrypt(t *testing.T) {
 	enc, err := Encrypt(key, msg)
 	require.NoError(t, err)
 
-	got, err := Decript(key, enc)
+	got, err := Decrypt(key, enc)
 	require.NoError(t, err)
 
 	assert.EqualValues(t, msg, got)
