@@ -16,31 +16,45 @@ var (
 	ErrNoToken = errors.New("account has no token set, use Signup or Login first")
 )
 
+// ClientOptions allow you control specific options of the client.
+// Most of the users should use DefaultClientOptions when constructing the
+// client.
 type ClientOptions struct {
+	// Host is the Etebase server host.
 	Host string
-	Env  string
+	// Env is the Etebase server environment.
+	// Possible values are `partner` or `developer`.
+	Env string
 }
 
 func (opts ClientOptions) baseUrl(name string) string {
 	return fmt.Sprintf("https://%s/%s/%s/api/v1", opts.Host, opts.Env, name)
 }
 
+// DefaultClientOptions will make your client point to the official Etebase
+// server in 'developer' mode.
 var DefaultClientOptions = ClientOptions{
 	Host: "api.etebase.com",
 	Env:  "developer",
 }
 
+// Client implements the network client to use to interact with the Etebase
+// server.
 type Client struct {
 	baseUrl string
 	token   string
 }
 
+// NewClient returns a new client object given a name (your etebase account name),
+// and options inside the ClientOptions struct.
 func NewClient(name string, opts ClientOptions) *Client {
 	return &Client{
 		baseUrl: opts.baseUrl(name),
 	}
 }
 
+// WithToken returns a client that attaches a `Authorization: Token <token>` to
+// any request.
 func (c Client) WithToken(token string) *Client {
 	c.token = token
 	return &c
@@ -54,6 +68,8 @@ func (c *Client) url(path string) string {
 	return url
 }
 
+// Post posts an encoded value `v` to the server.
+// `v` will be encoded using msgpack format.
 func (c *Client) Post(path string, v interface{}) (*http.Response, error) {
 	log.Printf("POST %s", path)
 	body, err := msgpack.Marshal(v)
@@ -74,6 +90,8 @@ func (c *Client) Post(path string, v interface{}) (*http.Response, error) {
 	return http.DefaultClient.Do(req)
 }
 
+// Account represents a user account and is the main object for all user
+// interactions and data manipulation.
 type Account struct {
 	client *Client
 	token  string
@@ -84,6 +102,7 @@ type Account struct {
 	idPub, idPriv       []byte
 }
 
+// NewAccount returns a new Account object.
 func NewAccount(c *Client) *Account {
 	acc := &Account{
 		client: c,
@@ -100,6 +119,8 @@ func (acc *Account) initKeys(password string) {
 	acc.idPub, acc.idPriv = GenrateKeyPair(Rand(32))
 }
 
+// Signup attempts to signup a new user into the server given a user and a
+// password.
 func (acc *Account) Signup(user User, password string) error {
 	if acc.salt == nil {
 		acc.initKeys(password)
@@ -165,6 +186,9 @@ func (acc *Account) loginChallenge(username string) (*LoginChallengeResponse, er
 	return &challenge, nil
 }
 
+// Login attempts to login a user given its username and password.
+// If login succeeds account will be authentified and ready to perform requests
+// on behalf of that user.
 func (acc *Account) Login(username, password string) error {
 	if acc.salt == nil {
 		acc.initKeys(password)
@@ -205,7 +229,8 @@ func (acc *Account) Login(username, password string) error {
 	return nil
 }
 
-func (acc *Account) Play() error {
+// Collection is not implemented yet.
+func (acc *Account) Collection() error {
 	if acc.token == "" {
 		return ErrNoToken
 	}

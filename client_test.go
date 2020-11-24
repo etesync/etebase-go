@@ -65,7 +65,7 @@ func TestClient(t *testing.T) {
 		)
 	})
 
-	t.Run("Play", func(t *testing.T) {
-		require.NoError(t, acc.Play())
+	t.Run("Collection", func(t *testing.T) {
+		require.NoError(t, acc.Collection())
 	})
 }
