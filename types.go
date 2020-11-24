@@ -1,9 +1,7 @@
 package etebase
 
 import (
-	"encoding/base64"
 	"fmt"
-	"strings"
 )
 
 type User struct {
@@ -12,9 +10,9 @@ type User struct {
 }
 
 type ErrorResponse struct {
-	Code   string          `json:"code"`
-	Detail string          `json:"detail"`
-	Errors []ErrorResponse `json:"errors,omitempty"`
+	Code   string          `msgpack:"code"`
+	Detail string          `msgpack:"detail"`
+	Errors []ErrorResponse `msgpack:"errors,omitempty"`
 }
 
 func (err *ErrorResponse) Error() string {
@@ -29,23 +27,13 @@ type SignupRequest struct {
 	EncryptedContent []byte `msgpack:"encryptedContent"`
 }
 
-type Base64URL []byte
-
-func (b *Base64URL) UnmarshalJSON(data []byte) (err error) {
-	// remove '"' from the json data
-	str := strings.Trim(string(data), "\"")
-
-	*b, err = base64.RawURLEncoding.DecodeString(str)
-	return err
-}
-
 type LoginChallengeRequest struct {
 	Username string `msgpack:"username"`
 }
 
 type LoginChallengeResponse struct {
-	Salt      Base64URL `json:"salt"`
-	Challenge Base64URL `json:"challenge"`
+	Salt      []byte `msgpack:"salt"`
+	Challenge []byte `msgpack:"challenge"`
 }
 
 type LoginRequest struct {
@@ -56,10 +44,10 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Token string `json:"token"`
+	Token string `msgpack:"token"`
 	User  struct {
 		User
-		PubKey           string `json:"pubkey"`
-		EncryptedContent string `json:"encryptedContent"`
-	} `json:"user"`
+		PubKey           string `msgpack:"pubkey"`
+		EncryptedContent string `msgpack:"encryptedContent"`
+	} `msgpack:"user"`
 }

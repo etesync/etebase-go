@@ -2,7 +2,6 @@ package etebase
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -67,6 +66,7 @@ func (c *Client) Post(path string, v interface{}) (*http.Response, error) {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/msgpack")
+	req.Header.Set("Accept", "application/msgpack")
 	if t := c.token; t != "" {
 		req.Header.Set("Authorization", "Token "+t)
 	}
@@ -125,7 +125,7 @@ func (acc *Account) Signup(user User, password string) error {
 
 	if resp.StatusCode != http.StatusCreated {
 		var respErr ErrorResponse
-		if err := json.NewDecoder(resp.Body).Decode(&respErr); err != nil {
+		if err := NewDecoder(resp.Body).Decode(&respErr); err != nil {
 			return err
 		}
 		return &respErr
@@ -147,7 +147,7 @@ func (acc *Account) loginChallenge(username string) (*LoginChallengeResponse, er
 		return nil, err
 	}
 	defer resp.Body.Close()
-	dec := json.NewDecoder(resp.Body)
+	dec := NewDecoder(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		var rErr ErrorResponse
@@ -175,7 +175,7 @@ func (acc *Account) Login(username, password string) error {
 		return err
 	}
 
-	buf, err := msgpack.Marshal(&LoginRequest{
+	buf, err := Marshal(&LoginRequest{
 		Username:  username,
 		Challenge: challenge.Challenge,
 		Host:      "api.etebase.com",
@@ -197,7 +197,7 @@ func (acc *Account) Login(username, password string) error {
 	defer resp.Body.Close()
 
 	var loginResponse LoginResponse
-	if err := json.NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
+	if err := NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
 		return err
 	}
 	acc.token = loginResponse.Token
@@ -218,7 +218,7 @@ func (acc *Account) Play() error {
 	log.Printf("resp.Status = %+v\n", resp.Status)
 
 	var body interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+	if err := NewDecoder(resp.Body).Decode(&body); err != nil {
 		return err
 	}
 	log.Printf("body = %+v\n", body)
