@@ -1,4 +1,4 @@
-package etebase
+package crypto
 
 import (
 	"math/rand"

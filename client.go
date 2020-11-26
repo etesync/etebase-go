@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/etesync/etebase/internal/crypto"
 	"github.com/vmihailenco/msgpack"
 )
 
@@ -112,11 +113,11 @@ func NewAccount(c *Client) *Account {
 }
 
 func (acc *Account) initKeys(password string) {
-	acc.salt = Rand(32)
-	acc.mainKey = DeriveKey(acc.salt, password)
-	acc.accountKey = Rand(32)
-	acc.authPub, acc.authPriv = GenrateKeyPair(acc.mainKey)
-	acc.idPub, acc.idPriv = GenrateKeyPair(Rand(32))
+	acc.salt = crypto.Rand(32)
+	acc.mainKey = crypto.DeriveKey(acc.salt, password)
+	acc.accountKey = crypto.Rand(32)
+	acc.authPub, acc.authPriv = crypto.GenrateKeyPair(acc.mainKey)
+	acc.idPub, acc.idPriv = crypto.GenrateKeyPair(crypto.Rand(32))
 }
 
 // Signup attempts to signup a new user into the server given a user and a
@@ -126,7 +127,7 @@ func (acc *Account) Signup(user User, password string) error {
 		acc.initKeys(password)
 	}
 
-	encrypedContent, err := Encrypt(acc.mainKey, append(acc.accountKey, acc.idPriv...))
+	encrypedContent, err := crypto.Encrypt(acc.mainKey, append(acc.accountKey, acc.idPriv...))
 	if err != nil {
 		return err
 	}
@@ -210,7 +211,7 @@ func (acc *Account) Login(username, password string) error {
 	}
 
 	//	mainKey := DeriveKey(challenge.Salt, password)
-	sig := Sign(acc.authPriv, buf)
+	sig := crypto.Sign(acc.authPriv, buf)
 	resp, err := acc.client.Post("/authentication/login", struct {
 		Response  []byte `msgpack:"response"`
 		Signature []byte `msgpack:"signature"`
