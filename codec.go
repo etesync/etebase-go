@@ -3,7 +3,7 @@ package etebase
 import (
 	"io"
 
-	"github.com/vmihailenco/msgpack"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 type Decoder interface {

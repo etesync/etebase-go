@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/vmihailenco/msgpack"
+	"github.com/vmihailenco/msgpack/v5"
 
 	"github.com/etesync/etebase-go/internal/crypto"
 )
