@@ -9,8 +9,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/etesync/etebase/internal/crypto"
 	"github.com/vmihailenco/msgpack"
+
+	"github.com/etesync/etebase-go/internal/crypto"
 )
 
 var (

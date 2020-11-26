@@ -1,4 +1,4 @@
-module github.com/etesync/etebase
+module github.com/etesync/etebase-go
 
 go 1.14
 
