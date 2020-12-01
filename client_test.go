@@ -70,6 +70,14 @@ func TestClient(t *testing.T) {
 		require.NoError(t,
 			acc.Login(user.Username, password),
 		)
+
+		require.NoError(t,
+			acc.PasswordChange("some-random-password"),
+		)
+
+		require.NoError(t,
+			acc.PasswordChange(password),
+		)
 	})
 
 	t.Run("Collection", func(t *testing.T) {

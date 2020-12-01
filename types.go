@@ -37,10 +37,15 @@ type LoginChallengeResponse struct {
 }
 
 type LoginRequest struct {
+	// These fields are common to login and passwordChange
 	Username  string `msgpack:"username"`
 	Challenge []byte `msgpack:"challenge"`
 	Host      string `msgpack:"host"`
 	Action    string `msgpack:"action"`
+
+	// These fields exclusively used for passwordChange
+	LoginPubKey      []byte `msgpack:"loginPubkey,omitempty"`
+	EncryptedContent []byte `msgpack:"encryptedContent,omitempty"`
 }
 
 type LoginResponse struct {

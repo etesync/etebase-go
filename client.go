@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	ErrNoToken = errors.New("account has no token set, use Signup or Login first")
+	ErrNoSession = errors.New("account has not started a session, use Signup or Login first")
 )
 
 // ClientOptions allow you control specific options of the client.
@@ -100,8 +100,8 @@ func (c *Client) Get(path string) (*http.Response, error) {
 // Account represents a user account and is the main object for all user
 // interactions and data manipulation.
 type Account struct {
-	client *Client
-	token  string
+	client  *Client
+	session *LoginResponse
 
 	salt                []byte
 	mainKey, accountKey []byte
@@ -118,8 +118,8 @@ func NewAccount(c *Client) *Account {
 	return acc
 }
 
-func (acc *Account) initKeys(password string) {
-	acc.salt = crypto.Rand(32)
+func (acc *Account) initKeys(salt []byte, password string) {
+	acc.salt = salt
 	acc.mainKey = crypto.DeriveKey(acc.salt, password)
 	acc.accountKey = crypto.Rand(32)
 	acc.authPub, acc.authPriv = crypto.GenrateKeyPair(acc.mainKey)
@@ -144,7 +144,7 @@ func (acc *Account) IsEtebaseServer() (bool, error) {
 // password.
 func (acc *Account) Signup(user User, password string) error {
 	if acc.salt == nil {
-		acc.initKeys(password)
+		acc.initKeys(crypto.Rand(32), password)
 	}
 
 	encrypedContent, err := crypto.Encrypt(acc.mainKey, append(acc.accountKey, acc.idPriv...))
@@ -203,34 +203,34 @@ func (acc *Account) loginChallenge(username string) (*LoginChallengeResponse, er
 	if err := dec.Decode(&challenge); err != nil {
 		return nil, err
 	}
-
 	return &challenge, nil
 }
 
 // Login attempts to login a user given its username and password.
-// If login succeeds account will be authentified and ready to perform requests
+// If login succeeds, a session will be created.
+// The account will be authentified and ready to perform requests
 // on behalf of that user.
 func (acc *Account) Login(username, password string) error {
 	if acc.salt == nil {
-		acc.initKeys(password)
+		acc.initKeys(crypto.Rand(32), password)
 	}
 
-	challenge, err := acc.loginChallenge(username)
+	lc, err := acc.loginChallenge(username)
 	if err != nil {
 		return err
 	}
 
-	buf, err := Marshal(&LoginRequest{
+	req := LoginRequest{
 		Username:  username,
-		Challenge: challenge.Challenge,
+		Challenge: lc.Challenge,
 		Host:      "api.etebase.com",
 		Action:    "login",
-	})
+	}
+	buf, err := Marshal(req)
 	if err != nil {
 		return err
 	}
 
-	//	mainKey := DeriveKey(challenge.Salt, password)
 	sig := crypto.Sign(acc.authPriv, buf)
 	resp, err := acc.client.Post("/authentication/login", struct {
 		Response  []byte `msgpack:"response"`
@@ -241,22 +241,79 @@ func (acc *Account) Login(username, password string) error {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusUnauthorized {
+		var errResp ErrorResponse
+		if err := NewDecoder(resp.Body).Decode(&errResp); err != nil {
+			return err
+		}
+		return &errResp
+	}
+
 	var loginResponse LoginResponse
 	if err := NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
 		return err
 	}
-	acc.token = loginResponse.Token
+
+	acc.session = &loginResponse
+	return nil
+}
+
+// PasswordChange changes the password of an active session.
+func (acc *Account) PasswordChange(newPassword string) error {
+	if acc.session == nil {
+		return ErrNoSession
+	}
+	lc, err := acc.loginChallenge(acc.session.User.Username)
+	if err != nil {
+		return err
+	}
+
+	priv := acc.authPriv
+	acc.initKeys(lc.Salt, newPassword)
+
+	encrypedContent, err := crypto.Encrypt(acc.mainKey, append(acc.accountKey, acc.idPriv...))
+	if err != nil {
+		return err
+	}
+
+	req := LoginRequest{
+		Username:         acc.session.User.Username,
+		Challenge:        lc.Challenge,
+		Host:             "api.etebase.com",
+		Action:           "changePassword",
+		LoginPubKey:      acc.authPub,
+		EncryptedContent: encrypedContent,
+	}
+	buf, err := Marshal(req)
+	if err != nil {
+		return err
+	}
+
+	sig := crypto.Sign(priv, buf)
+	resp, err := acc.client.WithToken(acc.session.Token).Post("/authentication/change_password", struct {
+		Response  []byte `msgpack:"response"`
+		Signature []byte `msgpack:"signature"`
+	}{buf, sig})
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	var loginResponse interface{} //LoginResponse
+	if err := NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
+		return err
+	}
 
 	return nil
 }
 
 // Collection is not implemented yet.
 func (acc *Account) Collection() error {
-	if acc.token == "" {
-		return ErrNoToken
+	if acc.session == nil {
+		return ErrNoSession
 	}
 
-	resp, err := acc.client.WithToken(acc.token).Post("/collection/", nil)
+	resp, err := acc.client.WithToken(acc.session.Token).Post("/collection/", nil)
 	if err != nil {
 		return err
 	}
