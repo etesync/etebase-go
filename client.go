@@ -92,6 +92,11 @@ func (c *Client) Post(path string, v interface{}) (*http.Response, error) {
 	return http.DefaultClient.Do(req)
 }
 
+func (c *Client) Get(path string) (*http.Response, error) {
+	log.Printf("GET %s", path)
+	return http.Get(c.url(path))
+}
+
 // Account represents a user account and is the main object for all user
 // interactions and data manipulation.
 type Account struct {
@@ -119,6 +124,20 @@ func (acc *Account) initKeys(password string) {
 	acc.accountKey = crypto.Rand(32)
 	acc.authPub, acc.authPriv = crypto.GenrateKeyPair(acc.mainKey)
 	acc.idPub, acc.idPriv = crypto.GenrateKeyPair(crypto.Rand(32))
+}
+
+// IsEtebaseServer checks if the provided client is pointing to an actual
+// Etebase server, it returns false if not.
+func (acc *Account) IsEtebaseServer() (bool, error) {
+	resp, err := acc.client.Get("/authentication/is_etebase/")
+	if err != nil {
+		return false, err
+	}
+	if err := resp.Body.Close(); err != nil {
+		return false, err
+	}
+
+	return resp.StatusCode != 404, nil
 }
 
 // Signup attempts to signup a new user into the server given a user and a

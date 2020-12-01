@@ -53,6 +53,13 @@ func TestClient(t *testing.T) {
 		)
 	)
 
+	// Make sure we are testing against an etebase server
+	ok, err := acc.IsEtebaseServer()
+	require.NoError(t, err)
+	if !ok {
+		t.Skipf("Not an Etebase server")
+	}
+
 	t.Run("Signup", func(t *testing.T) {
 		assert.NoError(t,
 			acc.Signup(user, password),
