@@ -16,7 +16,7 @@ A (work in progress) Go library for Etebase
   - [x] Signup
   - [x] Login
   - [ ] Logout
-  - [ ] Password Change
+  - [x] Password Change
 - [ ] Collections
 - [ ] Items
 - [ ] Invitations
