@@ -1,7 +1,6 @@
 package etebase
 
 import (
-	"errors"
 	"log"
 	"net/http"
 
@@ -72,21 +71,12 @@ func (acc *Account) signup(user User, password string) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusCreated {
-		var respErr ErrorResponse
-		if err := codec.NewDecoder(resp.Body).Decode(&respErr); err != nil {
-			return err
-		}
-		return &respErr
-	}
-
 	var loginResponse LoginResponse
 	if err := codec.NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
 		return err
 	}
 
 	acc.session = &loginResponse
-
 	return nil
 }
 
@@ -117,14 +107,6 @@ func (acc *Account) login(username, password string) error {
 		return err
 	}
 	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusUnauthorized {
-		var errResp ErrorResponse
-		if err := codec.NewDecoder(resp.Body).Decode(&errResp); err != nil {
-			return err
-		}
-		return &errResp
-	}
 
 	var loginResponse LoginResponse
 	if err := codec.NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
@@ -213,12 +195,7 @@ func (acc *Account) Logout() error {
 	if err != nil {
 		return err
 	}
-
-	if resp.StatusCode >= 400 {
-		return errors.New(resp.Status)
-	}
-
-	return nil
+	return resp.Body.Close()
 }
 
 // Collection is not implemented yet.

@@ -61,6 +61,20 @@ func (s *AccountSuite) TestPasswordChange() {
 	)
 }
 
+func (s *AccountSuite) TestLogin() {
+	s.Run("UserNotFound", func() {
+		_, err := etebase.Login(s.newClient(), "some-not-existing-user", s.password)
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "not found")
+	})
+
+	s.Run("WrongPassword", func() {
+		_, err := etebase.Login(s.newClient(), s.user.Username, "wrong-password")
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "Wrong password")
+	})
+}
+
 // TestLogout logs-out an account twice. The second time it shouldn't be
 // authorized.
 func (s *AccountSuite) TestLogout() {
@@ -70,7 +84,7 @@ func (s *AccountSuite) TestLogout() {
 	err := s.account.Logout()
 
 	s.Require().Error(err)
-	s.Require().Contains(err.Error(), "Unauthorized")
+	s.Require().Contains(err.Error(), "Invalid token.")
 }
 
 func TestAcountSuite(t *testing.T) {
