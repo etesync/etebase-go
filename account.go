@@ -20,8 +20,8 @@ type Account struct {
 	idPub, idPriv       []byte
 }
 
-// NewAccount returns a new Account object.
-func NewAccount(c *Client) *Account {
+// newAccount returns a new Account object.
+func newAccount(c *Client) *Account {
 	acc := &Account{
 		client: c,
 	}
@@ -37,8 +37,8 @@ func (acc *Account) initKeys(salt []byte, password string) {
 	acc.idPub, acc.idPriv = crypto.GenrateKeyPair(crypto.Rand(32))
 }
 
-// IsEtebaseServer checks if the provided client is pointing to an actual
-// Etebase server, it returns false if not.
+// IsEtebaseServer checks whether the Client is pointing to a valid Etebase
+// server.
 func (acc *Account) IsEtebaseServer() (bool, error) {
 	resp, err := acc.client.Get("/authentication/is_etebase/")
 	if err != nil {
@@ -89,10 +89,6 @@ func (acc *Account) signup(user User, password string) error {
 	return nil
 }
 
-// Login attempts to login a user given its username and password.
-// If login succeeds, a session will be created.
-// The account will be authentified and ready to perform requests
-// on behalf of that user.
 func (acc *Account) login(username, password string) error {
 	lc, err := acc.loginChallenge(username)
 	if err != nil {
@@ -234,16 +230,18 @@ func (acc *Account) Collection() error {
 	return err
 }
 
+// Signup a new user account and returns an Account instance.
 func Signup(c *Client, user User, password string) (*Account, error) {
-	acc := NewAccount(c)
+	acc := newAccount(c)
 	if err := acc.signup(user, password); err != nil {
 		return nil, err
 	}
 	return acc, nil
 }
 
+// Login a user and returns a handle to an Account instance.
 func Login(c *Client, username, password string) (*Account, error) {
-	acc := NewAccount(c)
+	acc := newAccount(c)
 	if err := acc.login(username, password); err != nil {
 		return nil, err
 	}
