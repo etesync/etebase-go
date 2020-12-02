@@ -2,7 +2,6 @@ package etebase
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"path"
 	"strings"
@@ -25,6 +24,10 @@ type ClientOptions struct {
 
 	// UseSSL specifies is ssl should be used or not.
 	UseSSL bool
+
+	Logger interface {
+		Logf(format string, v ...interface{})
+	}
 }
 
 func (opts ClientOptions) baseUrl() string {
@@ -61,7 +64,7 @@ func PartnerClientOptions(name string) ClientOptions {
 type Client struct {
 	baseUrl string
 	token   string
-	host    string
+	opts    *ClientOptions
 }
 
 // NewClient returns a new client object given a name (your etebase account name),
@@ -69,7 +72,7 @@ type Client struct {
 func NewClient(opts ClientOptions) *Client {
 	return &Client{
 		baseUrl: opts.baseUrl(),
-		host:    opts.Host,
+		opts:    &opts,
 	}
 }
 
@@ -88,12 +91,18 @@ func (c *Client) url(path string) string {
 	return url
 }
 
+func (c *Client) log(format string, v ...interface{}) {
+	if l := c.opts.Logger; l != nil {
+		l.Logf(format, v...)
+	}
+}
+
 // do sends a http Request with the right headers and verifies the status code
 // before returning.
 // If the status code isn't 200 <= x <= 400 it decodes the response error and
 // closes the body.
 func (c *Client) do(req *http.Request) (*http.Response, error) {
-	fmt.Printf("%-6s %s\n", req.Method, req.URL.Path)
+	c.log("%-6s %s\n", req.Method, req.URL.Path)
 	req.Header.Set("Content-Type", "application/msgpack")
 	req.Header.Set("Accept", "application/msgpack")
 	if t := c.token; t != "" {
@@ -145,5 +154,5 @@ func (c *Client) Get(path string) (*http.Response, error) {
 }
 
 func (c *Client) Host() string {
-	return c.host
+	return c.opts.Host
 }
