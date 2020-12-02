@@ -3,10 +3,10 @@ package etebase
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/vmihailenco/msgpack/v5"
@@ -24,20 +24,43 @@ var (
 type ClientOptions struct {
 	// Host is the Etebase server host.
 	Host string
-	// Env is the Etebase server environment.
-	// Possible values are `partner` or `developer`.
-	Env string
+	// Prefix is a string used as a prefix for requests.
+	// Possible values are `/partner/your-username` or
+	// `/developer/your-username` if your are using etebase.com server.
+	// For local server leave it blank.
+	Prefix string
+
+	// UseSSL specifies is ssl should be used or not.
+	UseSSL bool
 }
 
-func (opts ClientOptions) baseUrl(name string) string {
-	return fmt.Sprintf("https://%s/%s/%s/api/v1", opts.Host, opts.Env, name)
+func (opts ClientOptions) baseUrl() string {
+	var schema string
+	if opts.UseSSL {
+		schema = "https"
+	} else {
+		schema = "http"
+	}
+
+	return schema + "://" + path.Join(opts.Host, opts.Prefix, "api/v1")
 }
 
 // DefaultClientOptions will make your client point to the official Etebase
 // server in 'developer' mode.
-var DefaultClientOptions = ClientOptions{
-	Host: "api.etebase.com",
-	Env:  "developer",
+func DeveloperClientOptions(name string) ClientOptions {
+	return ClientOptions{
+		Host:   "api.etebase.com",
+		UseSSL: true,
+		Prefix: path.Join("developer", name),
+	}
+}
+
+func PartnerClientOptions(name string) ClientOptions {
+	return ClientOptions{
+		Host:   "api.etebase.com",
+		UseSSL: true,
+		Prefix: path.Join("partner", name),
+	}
 }
 
 // Client implements the network client to use to interact with the Etebase
@@ -49,9 +72,9 @@ type Client struct {
 
 // NewClient returns a new client object given a name (your etebase account name),
 // and options inside the ClientOptions struct.
-func NewClient(name string, opts ClientOptions) *Client {
+func NewClient(opts ClientOptions) *Client {
 	return &Client{
-		baseUrl: opts.baseUrl(name),
+		baseUrl: opts.baseUrl(),
 	}
 }
 

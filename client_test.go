@@ -48,9 +48,10 @@ func TestClient(t *testing.T) {
 	user, password := testUserFromEnv(t)
 
 	var (
-		acc = NewAccount(
-			NewClient(accountName, DefaultClientOptions),
-		)
+		client = NewClient(ClientOptions{
+			Host: "localhost:8000",
+		})
+		acc = NewAccount(client)
 	)
 
 	// Make sure we are testing against an etebase server
