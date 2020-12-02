@@ -1,6 +1,7 @@
 package etebase
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
@@ -161,9 +162,6 @@ func (acc *Account) loginChallenge(username string) (*LoginChallengeResponse, er
 
 // PasswordChange changes the password of an active session.
 func (acc *Account) PasswordChange(newPassword string) error {
-	if acc.session == nil {
-		return ErrNoSession
-	}
 	lc, err := acc.loginChallenge(acc.session.User.Username)
 	if err != nil {
 		return err
@@ -208,12 +206,23 @@ func (acc *Account) PasswordChange(newPassword string) error {
 	return nil
 }
 
-// Collection is not implemented yet.
-func (acc *Account) Collection() error {
-	if acc.session == nil {
-		return ErrNoSession
+// Logout the user from the current session and invalidate the authentication
+// token.
+func (acc *Account) Logout() error {
+	resp, err := acc.client.WithToken(acc.session.Token).Post("/authentication/logout/", nil)
+	if err != nil {
+		return err
 	}
 
+	if resp.StatusCode >= 400 {
+		return errors.New(resp.Status)
+	}
+
+	return nil
+}
+
+// Collection is not implemented yet.
+func (acc *Account) Collection() error {
 	resp, err := acc.client.WithToken(acc.session.Token).Post("/collection/", nil)
 	if err != nil {
 		return err
