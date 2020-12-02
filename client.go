@@ -2,17 +2,12 @@ package etebase
 
 import (
 	"bytes"
-	"errors"
 	"log"
 	"net/http"
 	"path"
 	"strings"
 
 	"github.com/vmihailenco/msgpack/v5"
-)
-
-var (
-	ErrNoSession = errors.New("account has not started a session, use Signup or Login first")
 )
 
 // ClientOptions allow you control specific options of the client.

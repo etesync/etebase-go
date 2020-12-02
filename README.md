@@ -12,10 +12,10 @@ A (work in progress) Go library for Etebase
 **Star** and **watch** to show your interest and get notified once it's ready!
 
 ## TODO:
-- [ ] Authentication
+- [x] Authentication
   - [x] Signup
   - [x] Login
-  - [ ] Logout
+  - [x] Logout
   - [x] Password Change
 - [ ] Collections
 - [ ] Items
