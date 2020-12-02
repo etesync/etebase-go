@@ -2,11 +2,12 @@ package etebase
 
 import (
 	"bytes"
-	"log"
+	"fmt"
 	"net/http"
 	"path"
 	"strings"
 
+	"github.com/etesync/etebase-go/internal/codec"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
@@ -85,10 +86,41 @@ func (c *Client) url(path string) string {
 	return url
 }
 
+// do sends a http Request with the right headers and verifies the status code
+// before returning.
+// If the status code isn't 200 <= x <= 400 it decodes the response error and
+// closes the body.
+func (c *Client) do(req *http.Request) (*http.Response, error) {
+	fmt.Printf("%-6s %s\n", req.Method, req.URL.Path)
+	req.Header.Set("Content-Type", "application/msgpack")
+	req.Header.Set("Accept", "application/msgpack")
+	if t := c.token; t != "" {
+		req.Header.Set("Authorization", "Token "+t)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	code := resp.StatusCode
+	if code >= 200 && code <= 400 {
+		return resp, nil
+	}
+
+	defer resp.Body.Close()
+
+	var body ErrorResponse
+	if err := codec.NewDecoder(resp.Body).Decode(&body); err != nil {
+		return nil, err
+	}
+
+	return nil, &body
+}
+
 // Post posts an encoded value `v` to the server.
 // `v` will be encoded using msgpack format.
 func (c *Client) Post(path string, v interface{}) (*http.Response, error) {
-	log.Printf("POST %s", path)
 	body, err := msgpack.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -98,16 +130,14 @@ func (c *Client) Post(path string, v interface{}) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/msgpack")
-	req.Header.Set("Accept", "application/msgpack")
-	if t := c.token; t != "" {
-		req.Header.Set("Authorization", "Token "+t)
-	}
 
-	return http.DefaultClient.Do(req)
+	return c.do(req)
 }
 
 func (c *Client) Get(path string) (*http.Response, error) {
-	log.Printf("GET  %s", path)
-	return http.Get(c.url(path))
+	req, err := http.NewRequest("GET", c.url(path), nil)
+	if err != nil {
+		return nil, err
+	}
+	return c.do(req)
 }
