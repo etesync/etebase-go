@@ -61,6 +61,7 @@ func PartnerClientOptions(name string) ClientOptions {
 type Client struct {
 	baseUrl string
 	token   string
+	host    string
 }
 
 // NewClient returns a new client object given a name (your etebase account name),
@@ -68,6 +69,7 @@ type Client struct {
 func NewClient(opts ClientOptions) *Client {
 	return &Client{
 		baseUrl: opts.baseUrl(),
+		host:    opts.Host,
 	}
 }
 
@@ -140,4 +142,8 @@ func (c *Client) Get(path string) (*http.Response, error) {
 		return nil, err
 	}
 	return c.do(req)
+}
+
+func (c *Client) Host() string {
+	return c.host
 }

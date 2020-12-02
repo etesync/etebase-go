@@ -90,7 +90,7 @@ func (acc *Account) login(username, password string) error {
 	req := LoginRequest{
 		Username:  username,
 		Challenge: lc.Challenge,
-		Host:      "api.etebase.com",
+		Host:      acc.client.Host(),
 		Action:    "login",
 	}
 	buf, err := codec.Marshal(req)
@@ -160,7 +160,7 @@ func (acc *Account) PasswordChange(newPassword string) error {
 	req := LoginRequest{
 		Username:         acc.session.User.Username,
 		Challenge:        lc.Challenge,
-		Host:             "api.etebase.com",
+		Host:             acc.client.Host(),
 		Action:           "changePassword",
 		LoginPubKey:      acc.authPub,
 		EncryptedContent: encrypedContent,
