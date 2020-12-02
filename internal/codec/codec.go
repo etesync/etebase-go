@@ -1,4 +1,4 @@
-package etebase
+package codec
 
 import (
 	"io"
