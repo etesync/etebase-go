@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/etesync/etebase-go/internal/codec"
 	"github.com/etesync/etebase-go/internal/crypto"
 )
 
@@ -72,14 +73,14 @@ func (acc *Account) signup(user User, password string) error {
 
 	if resp.StatusCode != http.StatusCreated {
 		var respErr ErrorResponse
-		if err := NewDecoder(resp.Body).Decode(&respErr); err != nil {
+		if err := codec.NewDecoder(resp.Body).Decode(&respErr); err != nil {
 			return err
 		}
 		return &respErr
 	}
 
 	var loginResponse LoginResponse
-	if err := NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
+	if err := codec.NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
 		return err
 	}
 
@@ -105,7 +106,7 @@ func (acc *Account) login(username, password string) error {
 		Host:      "api.etebase.com",
 		Action:    "login",
 	}
-	buf, err := Marshal(req)
+	buf, err := codec.Marshal(req)
 	if err != nil {
 		return err
 	}
@@ -122,14 +123,14 @@ func (acc *Account) login(username, password string) error {
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		var errResp ErrorResponse
-		if err := NewDecoder(resp.Body).Decode(&errResp); err != nil {
+		if err := codec.NewDecoder(resp.Body).Decode(&errResp); err != nil {
 			return err
 		}
 		return &errResp
 	}
 
 	var loginResponse LoginResponse
-	if err := NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
+	if err := codec.NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
 		return err
 	}
 
@@ -145,7 +146,7 @@ func (acc *Account) loginChallenge(username string) (*LoginChallengeResponse, er
 		return nil, err
 	}
 	defer resp.Body.Close()
-	dec := NewDecoder(resp.Body)
+	dec := codec.NewDecoder(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		var rErr ErrorResponse
@@ -188,7 +189,7 @@ func (acc *Account) PasswordChange(newPassword string) error {
 		LoginPubKey:      acc.authPub,
 		EncryptedContent: encrypedContent,
 	}
-	buf, err := Marshal(req)
+	buf, err := codec.Marshal(req)
 	if err != nil {
 		return err
 	}
@@ -204,7 +205,7 @@ func (acc *Account) PasswordChange(newPassword string) error {
 	defer resp.Body.Close()
 
 	var loginResponse interface{} //LoginResponse
-	if err := NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
+	if err := codec.NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
 		return err
 	}
 
@@ -225,7 +226,7 @@ func (acc *Account) Collection() error {
 	log.Printf("resp.Status = %+v\n", resp.Status)
 
 	var body interface{}
-	if err := NewDecoder(resp.Body).Decode(&body); err != nil {
+	if err := codec.NewDecoder(resp.Body).Decode(&body); err != nil {
 		return err
 	}
 	log.Printf("body = %+v\n", body)
