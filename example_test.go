@@ -1,18 +1,23 @@
 package etebase
 
-import "log"
-
-func ExampleNewAccount() {
-	acc := NewAccount(
-		NewClient(PartnerClientOptions("your-name")),
+func ExampleLogin() {
+	var (
+		client = NewClient(PartnerClientOptions("your-name"))
+		user   = User{
+			Username: "john",
+			Email:    "john@etebase.com",
+		}
+		password = "john's-secret"
 	)
 
-	user := User{
-		Username: "john",
-		Email:    "john@etebase.com",
+	if _, err := Signup(client, user, password); err != nil {
+		panic(err)
 	}
 
-	if err := acc.Signup(user, "my-password"); err != nil {
-		log.Fatalf("signup error: %v", err)
+	acc, err := Login(client, user.Username, password)
+	if err != nil {
+		panic(err)
 	}
+
+	_ = acc
 }
