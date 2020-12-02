@@ -4,7 +4,7 @@ import "log"
 
 func ExampleNewAccount() {
 	acc := NewAccount(
-		NewClient("your-account-name", DefaultClientOptions),
+		NewClient(PartnerClientOptions("your-name")),
 	)
 
 	user := User{
