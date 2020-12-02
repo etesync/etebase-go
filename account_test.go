@@ -21,7 +21,8 @@ type AccountSuite struct {
 
 func (s *AccountSuite) newClient() *etebase.Client {
 	return etebase.NewClient(etebase.ClientOptions{
-		Host: os.Getenv("ETEBASE_TEST_HOST"),
+		Host:   os.Getenv("ETEBASE_TEST_HOST"),
+		Logger: s.T(), // testign.T implements Logf
 	})
 }
 
