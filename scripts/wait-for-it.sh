@@ -1,7 +1,7 @@
+#!/usr/bin/env bash
+
 # SPDX-FileCopyrightText: © 2017  vishnubob/wait-for-it  Authors
 # SPDX-License-Identifier: MIT
-
-#!/usr/bin/env bash
 
 # Use this script to test if a given TCP host/port are available
 WAITFORIT_cmdname=${0##*/}
