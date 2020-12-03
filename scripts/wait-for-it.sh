@@ -1,6 +1,3 @@
-# SPDX-FileCopyrightText: © 2020  vishnubob/wait-for-it  Authors
-# SPDX-License-Identifier: MIT
-
 #!/usr/bin/env bash
 # Use this script to test if a given TCP host/port are available
 
