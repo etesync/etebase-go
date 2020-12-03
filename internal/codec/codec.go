@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: © 2020 Etebase Authors
+// SPDX-License-Identifier: BSD-3-Clause
+
 package codec
 
 import (
