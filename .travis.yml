@@ -10,6 +10,7 @@ before_install:
 
 go:
   - 1.14
+  - 1.15
   - master
 
 script:
