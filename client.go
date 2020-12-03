@@ -115,7 +115,7 @@ func (c *Client) do(req *http.Request) (*http.Response, error) {
 	}
 
 	code := resp.StatusCode
-	if code >= 200 && code <= 400 {
+	if code >= 200 && code < 400 {
 		return resp, nil
 	}
 
