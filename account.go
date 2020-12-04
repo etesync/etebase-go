@@ -5,7 +5,6 @@ package etebase
 
 import (
 	"log"
-	"net/http"
 
 	"github.com/etesync/etebase-go/internal/codec"
 	"github.com/etesync/etebase-go/internal/crypto"
@@ -128,18 +127,9 @@ func (acc *Account) loginChallenge(username string) (*LoginChallengeResponse, er
 		return nil, err
 	}
 	defer resp.Body.Close()
-	dec := codec.NewDecoder(resp.Body)
-
-	if resp.StatusCode != http.StatusOK {
-		var rErr ErrorResponse
-		if err := dec.Decode(&rErr); err != nil {
-			return nil, err
-		}
-		return nil, &rErr
-	}
 
 	var challenge LoginChallengeResponse
-	if err := dec.Decode(&challenge); err != nil {
+	if err := codec.NewDecoder(resp.Body).Decode(&challenge); err != nil {
 		return nil, err
 	}
 	return &challenge, nil
