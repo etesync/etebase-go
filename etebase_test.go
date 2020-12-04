@@ -22,10 +22,19 @@ type AccountSuite struct {
 	password string
 }
 
+const (
+	hostEnv = "ETEBASE_TEST_HOST"
+)
+
 func (s *AccountSuite) newClient() *etebase.Client {
+	host := os.Getenv(hostEnv)
+	if host == "" {
+		s.T().Skip("Define " + hostEnv + " to run this test")
+	}
+
 	return etebase.NewClient(etebase.ClientOptions{
-		Host:   os.Getenv("ETEBASE_TEST_HOST"),
-		Logger: s.T(), // testign.T implements Logf
+		Host:   host,
+		Logger: s.T(), // testing.T implements Logf
 	})
 }
 
@@ -91,9 +100,8 @@ func (s *AccountSuite) TestLogout() {
 	s.Require().Contains(err.Error(), "Invalid token.")
 }
 
-func TestAcountSuite(t *testing.T) {
+func TestEtebaseSuite(t *testing.T) {
 	var (
-		host     = os.Getenv("ETEBASE_TEST_HOST")
 		id       = fmt.Sprintf("%d", time.Now().Unix())
 		username = "test-user-" + id
 
@@ -103,10 +111,6 @@ func TestAcountSuite(t *testing.T) {
 		}
 		password = "secret"
 	)
-
-	if host == "" {
-		t.Skip("Define ETEBASE_TEST_HOST to run this test")
-	}
 
 	suite.Run(t, &AccountSuite{
 		user:     user,
