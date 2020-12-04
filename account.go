@@ -171,14 +171,9 @@ func (acc *Account) PasswordChange(newPassword string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
 
-	var loginResponse interface{} //LoginResponse
-	if err := codec.NewDecoder(resp.Body).Decode(&loginResponse); err != nil {
-		return err
-	}
-
-	return nil
+	// We don't expect any content from the server.
+	return resp.Body.Close()
 }
 
 // Logout the user from the current session and invalidate the authentication
