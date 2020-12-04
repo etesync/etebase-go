@@ -1,5 +1,10 @@
 language: go
 
+go:
+  - 1.14
+  - 1.15
+  - master
+
 services:
   - docker
 
@@ -8,12 +13,10 @@ before_install:
   - docker run -d -v $PWD/scripts:/etebase/scripts -e DEBUG=true -p 80:3735 victorrds/etebase ./scripts/testmode.sh
   - ./scripts/wait-for-it.sh localhost:80
 
-go:
-  - 1.14
-  - 1.15
-  - master
-
 script:
   - go fmt ./...
   - go vet ./...
-  - ETEBASE_TEST_HOST=localhost:80 go test -race ./... -v
+  - ETEBASE_TEST_HOST=localhost:80 go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
