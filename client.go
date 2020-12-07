@@ -5,6 +5,7 @@ package etebase
 
 import (
 	"bytes"
+	"errors"
 	"net/http"
 	"path"
 	"strings"
@@ -121,8 +122,14 @@ func (c *Client) do(req *http.Request) (*http.Response, error) {
 	if code >= 200 && code < 400 {
 		return resp, nil
 	}
-
 	defer resp.Body.Close()
+
+	switch code {
+	case 404:
+		return nil, errors.New("not found")
+	case 500:
+		return nil, errors.New("internal error")
+	}
 
 	var body ErrorResponse
 	if err := codec.NewDecoder(resp.Body).Decode(&body); err != nil {
