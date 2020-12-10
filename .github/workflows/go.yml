@@ -9,14 +9,10 @@ on:
 jobs:
   etebase-server:
     runs-on: ubuntu-latest
-    container: victorrds/etebase
-    steps:
-      - run: pwd
-      - run: ls
-      - run: sed -e '/ETEBASE_CREATE_USER_FUNC/ s/^#*/#/' -i etebase_server/settings.py
-      - run: ./manage.py migrate
-      - run: ./manage.py runserver 0.0.0.0:3735
-     
+    services:
+      etebase: 
+        image: victorrds/etebase
+           
   build:
     name: CI
     strategy:
