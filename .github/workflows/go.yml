@@ -11,12 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     container: victorrds/etebase
     steps:
-      - run: |
-          pwd
-          ls
-          sed -e '/ETEBASE_CREATE_USER_FUNC/ s/^#*/#/' -i etebase_server/settings.py
-          ./manage.py migrate
-          ./manage.py runserver 0.0.0.0:3735
+      - run: pwd
+      - run: ls
+      - run: sed -e '/ETEBASE_CREATE_USER_FUNC/ s/^#*/#/' -i etebase_server/settings.py
+      - run: ./manage.py migrate
+      - run: ./manage.py runserver 0.0.0.0:3735
      
   build:
     name: CI
