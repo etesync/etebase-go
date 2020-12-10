@@ -12,6 +12,8 @@ jobs:
     container: victorrds/etebase
     steps:
       - run: |
+          pwd
+          ls
           sed -e '/ETEBASE_CREATE_USER_FUNC/ s/^#*/#/' -i etebase_server/settings.py
           ./manage.py migrate
           ./manage.py runserver 0.0.0.0:3735
