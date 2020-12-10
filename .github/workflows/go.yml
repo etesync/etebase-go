@@ -1,0 +1,25 @@
+name: Go
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+jobs:
+  lint:
+    steps:
+       - name: fmt
+         run: go fmt ./...
+       - name: vet
+         run: go vet ./...
+  test:
+    strategy:
+      matrix:
+        go-version: [1.14.x, 1.15.x, tip]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+      runs-on: ${{ matrix.os }}
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+      name: test
+      run: go test ./...
