@@ -1,4 +1,4 @@
-name: Go
+name: Build
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
           ./scripts/wait-for-it.sh localhost:80
           
       - name: Linting
-      - run: |
+        run: |
           go fmt ./...
           go vet ./...
           
