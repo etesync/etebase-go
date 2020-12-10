@@ -4,12 +4,15 @@ on:
   push:
     branches: [ master ]
   pull_request:
+    branches: [ master ]
 
 jobs:
   lint:
+    name: Linting
     runs-on: ubuntu-latest
     steps:
-       - name: fmt
-         run: go fmt ./...
-       - name: vet
-         run: go vet ./...
+      - uses: actions/setup-go@v2.1.3
+      - name: fmt
+        run: go fmt ./...
+      - name: vet
+        run: go vet ./...
