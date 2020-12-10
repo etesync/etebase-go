@@ -6,8 +6,8 @@
 A (work in progress) Go library for Etebase
 
 ![GitHub tag](https://img.shields.io/github/tag/etesync/etebase-go.svg)
-[![Build Status](https://github.com/etesync/etebase-go/workflows/Build/badge.svg)](https://github.com/etesync/etebase-go/actions/)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/etesync/etebase-go)](https://pkg.go.dev/github.com/etesync/etebase-go)
+[![Build Status](https://github.com/etesync/etebase-go/workflows/Build/badge.svg)](https://github.com/etesync/etebase-go/actions/)
 [![codecov](https://codecov.io/gh/etesync/etebase-go/branch/master/graph/badge.svg?token=G7A71HXMIR)](https://codecov.io/gh/etesync/etebase-go)
 [![Chat with us](https://img.shields.io/badge/chat-IRC%20|%20Matrix%20|%20Web-blue.svg)](https://www.etebase.com/community-chat/)
 
