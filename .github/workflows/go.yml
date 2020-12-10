@@ -6,13 +6,7 @@ on:
   pull_request:
     branches: [ master ]
 
-jobs:
-  etebase-server:
-    runs-on: ubuntu-latest
-    services:
-      etebase: 
-        image: victorrds/etebase
-           
+jobs:               
   build:
     name: CI
     strategy:
@@ -20,6 +14,11 @@ jobs:
         go-version: [1.14.x, 1.15.x, tip]
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    
+    services:
+      etebase: 
+        image: victorrds/etebase
+
     steps:
       - uses: actions/setup-go@v2.1.3
       - uses: actions/checkout@v2
