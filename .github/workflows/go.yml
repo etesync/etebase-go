@@ -14,14 +14,14 @@ jobs:
         go-version: [1.14.x, 1.15.x, tip]
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    
-    services:
-      etebase: 
-        image: victorrds/etebase
 
     steps:
       - uses: actions/setup-go@v2.1.3
       - uses: actions/checkout@v2
+      - run: |
+          docker pull victorrds/etebase
+          docker run -d -v $PWD/scripts:/etebase/scripts -e DEBUG=true -p 80:3735 victorrds/etebase ./scripts/testmode.sh
+          ./scripts/wait-for-it.sh localhost:80
       - run: go fmt ./...
       - run: go vet ./...
       - run: go test ./...
