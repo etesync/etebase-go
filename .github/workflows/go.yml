@@ -7,7 +7,16 @@ on:
     branches: [ master ]
 
 jobs:
-  lint:
+  etebase-server:
+    runs-on: ubuntu-latest
+    container: victorrds/etebase
+    steps:
+      - run: |
+          sed -e '/ETEBASE_CREATE_USER_FUNC/ s/^#*/#/' -i etebase_server/settings.py
+          ./manage.py migrate
+          ./manage.py runserver 0.0.0.0:3735
+     
+  build:
     name: CI
     strategy:
       matrix:
