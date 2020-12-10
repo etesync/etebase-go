@@ -8,8 +8,12 @@ on:
 
 jobs:
   lint:
-    name: Linting
-    runs-on: ubuntu-latest
+    name: CI
+    strategy:
+      matrix:
+        go-version: [1.14.x, 1.15.x, tip]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/setup-go@v2.1.3
       - uses: actions/checkout@v2
