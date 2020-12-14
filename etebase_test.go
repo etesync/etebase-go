@@ -14,7 +14,7 @@ import (
 	"github.com/etesync/etebase-go"
 )
 
-type AccountSuite struct {
+type EtebaseSuite struct {
 	suite.Suite
 
 	account  *etebase.Account
@@ -26,7 +26,7 @@ const (
 	hostEnv = "ETEBASE_TEST_HOST"
 )
 
-func (s *AccountSuite) newClient() *etebase.Client {
+func (s *EtebaseSuite) newClient() *etebase.Client {
 	host := os.Getenv(hostEnv)
 	if host == "" {
 		s.T().Skip("Define " + hostEnv + " to run this test")
@@ -41,7 +41,7 @@ func (s *AccountSuite) newClient() *etebase.Client {
 // SetupSuite signs-up a new user and makes sure that the account instance is
 // pointing to a valid etebase server.
 // It run once, before the tests in the suite are run.
-func (s *AccountSuite) SetupSuite() {
+func (s *EtebaseSuite) SetupSuite() {
 	acc, err := etebase.Signup(s.newClient(), s.user, s.password)
 	s.Require().NoError(err)
 
@@ -52,7 +52,7 @@ func (s *AccountSuite) SetupSuite() {
 
 // SetupTest logs-in and keep a reference of the account.
 // It run before each test.
-func (s *AccountSuite) SetupTest() {
+func (s *EtebaseSuite) SetupTest() {
 	acc, err := etebase.Login(s.newClient(), s.user.Username, s.password)
 	s.Require().NoError(err)
 	s.account = acc
@@ -60,7 +60,7 @@ func (s *AccountSuite) SetupTest() {
 
 // TestPasswordChange changes the password and tries to login a user using the new password.
 // It changes the password to the previous one so that SetupTest can still login.
-func (s *AccountSuite) TestPasswordChange() {
+func (s *EtebaseSuite) TestPasswordChange() {
 	newPassword := "a-new-password"
 
 	s.Require().NoError(
@@ -74,7 +74,7 @@ func (s *AccountSuite) TestPasswordChange() {
 	)
 }
 
-func (s *AccountSuite) TestLogin() {
+func (s *EtebaseSuite) TestLogin() {
 	s.Run("UserNotFound", func() {
 		_, err := etebase.Login(s.newClient(), "some-not-existing-user", s.password)
 		s.Require().Error(err)
@@ -88,9 +88,15 @@ func (s *AccountSuite) TestLogin() {
 	})
 }
 
+func (s *EtebaseSuite) TestCollections() {
+	s.Require().NoError(
+		s.account.Collection(),
+	)
+}
+
 // TestLogout logs-out an account twice. The second time it shouldn't be
 // authorized.
-func (s *AccountSuite) TestLogout() {
+func (s *EtebaseSuite) TestLogout() {
 	s.Require().NoError(
 		s.account.Logout(),
 	)
@@ -112,7 +118,7 @@ func TestEtebaseSuite(t *testing.T) {
 		password = "secret"
 	)
 
-	suite.Run(t, &AccountSuite{
+	suite.Run(t, &EtebaseSuite{
 		user:     user,
 		password: password,
 	})
