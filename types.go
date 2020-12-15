@@ -15,11 +15,12 @@ type User struct {
 type ErrorResponse struct {
 	Code   string          `msgpack:"code"`
 	Detail string          `msgpack:"detail"`
+	Field  string          `msgpack:"field,omitempty"`
 	Errors []ErrorResponse `msgpack:"errors,omitempty"`
 }
 
 func (err *ErrorResponse) Error() string {
-	return fmt.Sprintf("code: %s, detail: %s", err.Code, err.Detail)
+	return fmt.Sprintf("code: %s, detail: %s (%+v)", err.Code, err.Detail, err.Errors)
 }
 
 type SignupRequest struct {

@@ -89,9 +89,38 @@ func (s *EtebaseSuite) TestLogin() {
 }
 
 func (s *EtebaseSuite) TestCollections() {
+	col, err := etebase.NewEncryptedCollection("testType", nil, nil)
+	col.AccessLevel = etebase.Admin
+	s.Require().NoError(err)
+
 	s.Require().NoError(
-		s.account.Collection(),
+		s.account.CreateCollection(col),
 	)
+
+	s.Run("ListMulti", func() {
+		found, err := s.account.ListCollections([][]byte{
+			col.Type,
+		})
+		s.Require().NoError(err)
+		s.Require().NotEmpty(found)
+	})
+
+	s.Run("GetCollection", func() {
+		found, err := s.account.GetCollection(col.Item.UID)
+		s.Require().NoError(err)
+		s.Require().NotEmpty(found.Stoken)
+
+		expected := col
+		expected.Stoken = found.Stoken
+
+		s.Require().Equal(expected, found)
+	})
+
+	s.Run("NotFound", func() {
+		_, err := s.account.GetCollection("not-an-existing-uid")
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "not found")
+	})
 }
 
 // TestLogout logs-out an account twice. The second time it shouldn't be
