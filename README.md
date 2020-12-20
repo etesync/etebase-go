@@ -22,3 +22,7 @@ A (work in progress) Go library for Etebase
 - [ ] Collections
 - [ ] Items
 - [ ] Invitations
+
+# Documentation
+
+In addition to the API documentation, there are docs available at https://docs.etebase.com
