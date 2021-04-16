@@ -23,6 +23,7 @@ type AccountSuite struct {
 }
 
 const (
+	// host, or host:port, on which the test server is running
 	hostEnv = "ETEBASE_TEST_HOST"
 )
 

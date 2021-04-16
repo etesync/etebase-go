@@ -23,6 +23,25 @@ A (work in progress) Go library for Etebase
 - [ ] Items
 - [ ] Invitations
 
+# Testing
+
+To test, run the `etesync/test-server` image using the latest version, e.g.,
+
+```
+docker run -p 3735:3735 -d etesync/test-server:latest
+```
+
+and then set `ETEBASE_TEST_HOST` to the host:port on which that is running; for the docker invocation above, that's
+```
+export ETEBASE_TEST_HOST=localhost:3735
+```
+
+and then run the tests
+
+```
+go test -v -v ./...
+```
+
 # Documentation
 
 In addition to the API documentation, there are docs available at https://docs.etebase.com
