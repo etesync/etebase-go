@@ -20,13 +20,12 @@ jobs:
       
       - name: Run local test Server
         run: |
-          docker pull victorrds/etebase
-          docker run -d -v $PWD/scripts:/etebase/scripts -e DEBUG=true -p 80:3735 victorrds/etebase ./scripts/testmode.sh
-          ./scripts/wait-for-it.sh localhost:80
+          docker run -d -p 3735:3735 etesync/test-server:latest
+          ./scripts/wait-for-it.sh localhost:3735
           
       - name: Tests
         env:
-          ETEBASE_TEST_HOST: localhost:80
+          ETEBASE_TEST_HOST: localhost:3735
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
       
       - name: Codecov
