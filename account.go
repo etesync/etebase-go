@@ -4,8 +4,6 @@
 package etebase
 
 import (
-	"log"
-
 	"github.com/etesync/etebase-go/internal/codec"
 	"github.com/etesync/etebase-go/internal/crypto"
 )
@@ -187,21 +185,58 @@ func (acc *Account) Logout() error {
 }
 
 // Collection is not implemented yet.
-func (acc *Account) Collection() error {
-	resp, err := acc.client.WithToken(acc.session.Token).Post("/collection/", nil)
+func (acc *Account) CreateCollection(col *EncryptedCollection) error {
+	resp, err := acc.client.WithToken(acc.session.Token).Post("/collection", col)
+
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-	log.Printf("resp.Status = %+v\n", resp.Status)
 
 	var body interface{}
 	if err := codec.NewDecoder(resp.Body).Decode(&body); err != nil {
 		return err
 	}
-	log.Printf("body = %+v\n", body)
 
 	return err
+}
+
+func (acc *Account) GetCollection(id string) (*EncryptedCollection, error) {
+	resp, err := acc.client.WithToken(acc.session.Token).Get("/collection/" + id)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var body EncryptedCollection
+	if err := codec.NewDecoder(resp.Body).Decode(&body); err != nil {
+		return nil, err
+	}
+
+	return &body, nil
+}
+
+func (acc *Account) ListCollections(types [][]byte) ([]EncryptedCollection, error) {
+	req := struct {
+		CollectionTypes [][]byte `msgpack:"collectionTypes"`
+	}{
+		types,
+	}
+
+	resp, err := acc.client.WithToken(acc.session.Token).Post("/collection/list_multi", req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var body struct {
+		Data []EncryptedCollection `msgpack:"data"`
+	}
+	if err := codec.NewDecoder(resp.Body).Decode(&body); err != nil {
+		return nil, err
+	}
+
+	return body.Data, nil
 }
 
 // Signup a new user account and returns an Account instance.
