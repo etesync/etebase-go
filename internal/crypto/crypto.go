@@ -4,17 +4,17 @@
 package crypto
 
 import (
-	"math/rand"
+	"crypto/rand"
 
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/chacha20poly1305"
 	"golang.org/x/crypto/ed25519"
 )
 
-func Rand(len int) []byte {
+func Rand(len int) ([]byte, error) {
 	buf := make([]byte, len)
-	rand.Read(buf)
-	return buf
+	_, err := rand.Read(buf)
+	return buf, err
 }
 
 func DeriveKey(salt []byte, password string) []byte {

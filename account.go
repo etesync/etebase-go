@@ -31,12 +31,20 @@ func newAccount(c *Client) *Account {
 	return acc
 }
 
-func (acc *Account) initKeys(salt []byte, password string) {
+func (acc *Account) initKeys(salt []byte, password string) (err error) {
 	acc.salt = salt
 	acc.mainKey = crypto.DeriveKey(acc.salt, password)
-	acc.accountKey = crypto.Rand(32)
+	acc.accountKey, err = crypto.Rand(32)
+	if err != nil {
+		return err
+	}
 	acc.authPub, acc.authPriv = crypto.GenrateKeyPair(acc.mainKey)
-	acc.idPub, acc.idPriv = crypto.GenrateKeyPair(crypto.Rand(32))
+	r, err := crypto.Rand(32)
+	if err != nil {
+		return err
+	}
+	acc.idPub, acc.idPriv = crypto.GenrateKeyPair(r)
+	return nil
 }
 
 // IsEtebaseServer checks whether the Client is pointing to a valid Etebase
@@ -54,7 +62,15 @@ func (acc *Account) IsEtebaseServer() (bool, error) {
 }
 
 func (acc *Account) signup(user User, password string) error {
-	acc.initKeys(crypto.Rand(32), password)
+	r, err := crypto.Rand(32)
+	if err != nil {
+		return err
+	}
+	err = acc.initKeys(r, password)
+	if err != nil {
+		return err
+	}
+
 	encrypedContent, err := crypto.Encrypt(acc.mainKey, append(acc.accountKey, acc.idPriv...))
 	if err != nil {
 		return err
@@ -87,7 +103,10 @@ func (acc *Account) login(username, password string) error {
 	if err != nil {
 		return err
 	}
-	acc.initKeys(lc.Salt, password)
+	err = acc.initKeys(lc.Salt, password)
+	if err != nil {
+		return err
+	}
 
 	req := LoginRequest{
 		Username:  username,
@@ -143,7 +162,10 @@ func (acc *Account) PasswordChange(newPassword string) error {
 	}
 
 	priv := acc.authPriv
-	acc.initKeys(lc.Salt, newPassword)
+	err = acc.initKeys(lc.Salt, newPassword)
+	if err != nil {
+		return err
+	}
 
 	encrypedContent, err := crypto.Encrypt(acc.mainKey, append(acc.accountKey, acc.idPriv...))
 	if err != nil {
