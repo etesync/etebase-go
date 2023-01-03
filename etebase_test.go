@@ -14,7 +14,7 @@ import (
 	"github.com/etesync/etebase-go"
 )
 
-type AccountSuite struct {
+type EtebaseSuite struct {
 	suite.Suite
 
 	account  *etebase.Account
@@ -27,7 +27,7 @@ const (
 	hostEnv = "ETEBASE_TEST_HOST"
 )
 
-func (s *AccountSuite) newClient() *etebase.Client {
+func (s *EtebaseSuite) newClient() *etebase.Client {
 	host := os.Getenv(hostEnv)
 	if host == "" {
 		s.T().Skip("Define " + hostEnv + " to run this test")
@@ -42,7 +42,7 @@ func (s *AccountSuite) newClient() *etebase.Client {
 // SetupSuite signs-up a new user and makes sure that the account instance is
 // pointing to a valid etebase server.
 // It run once, before the tests in the suite are run.
-func (s *AccountSuite) SetupSuite() {
+func (s *EtebaseSuite) SetupSuite() {
 	acc, err := etebase.Signup(s.newClient(), s.user, s.password)
 	s.Require().NoError(err)
 
@@ -53,7 +53,7 @@ func (s *AccountSuite) SetupSuite() {
 
 // SetupTest logs-in and keep a reference of the account.
 // It run before each test.
-func (s *AccountSuite) SetupTest() {
+func (s *EtebaseSuite) SetupTest() {
 	acc, err := etebase.Login(s.newClient(), s.user.Username, s.password)
 	s.Require().NoError(err)
 	s.account = acc
@@ -61,7 +61,7 @@ func (s *AccountSuite) SetupTest() {
 
 // TestPasswordChange changes the password and tries to login a user using the new password.
 // It changes the password to the previous one so that SetupTest can still login.
-func (s *AccountSuite) TestPasswordChange() {
+func (s *EtebaseSuite) TestPasswordChange() {
 	newPassword := "a-new-password"
 
 	s.Require().NoError(
@@ -75,7 +75,7 @@ func (s *AccountSuite) TestPasswordChange() {
 	)
 }
 
-func (s *AccountSuite) TestLogin() {
+func (s *EtebaseSuite) TestLogin() {
 	s.Run("UserNotFound", func() {
 		_, err := etebase.Login(s.newClient(), "some-not-existing-user", s.password)
 		s.Require().Error(err)
@@ -89,9 +89,44 @@ func (s *AccountSuite) TestLogin() {
 	})
 }
 
+func (s *EtebaseSuite) TestCollections() {
+	col, err := etebase.NewEncryptedCollection("testType", nil, nil)
+	col.AccessLevel = etebase.Admin
+	s.Require().NoError(err)
+
+	s.Require().NoError(
+		s.account.CreateCollection(col),
+	)
+
+	s.Run("ListMulti", func() {
+		found, err := s.account.ListCollections([][]byte{
+			col.Type,
+		})
+		s.Require().NoError(err)
+		s.Require().NotEmpty(found)
+	})
+
+	s.Run("GetCollection", func() {
+		found, err := s.account.GetCollection(col.Item.UID)
+		s.Require().NoError(err)
+		s.Require().NotEmpty(found.Stoken)
+
+		expected := col
+		expected.Stoken = found.Stoken
+
+		s.Require().Equal(expected, found)
+	})
+
+	s.Run("NotFound", func() {
+		_, err := s.account.GetCollection("not-an-existing-uid")
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "not found")
+	})
+}
+
 // TestLogout logs-out an account twice. The second time it shouldn't be
 // authorized.
-func (s *AccountSuite) TestLogout() {
+func (s *EtebaseSuite) TestLogout() {
 	s.Require().NoError(
 		s.account.Logout(),
 	)
@@ -113,7 +148,7 @@ func TestEtebaseSuite(t *testing.T) {
 		password = "secret"
 	)
 
-	suite.Run(t, &AccountSuite{
+	suite.Run(t, &EtebaseSuite{
 		user:     user,
 		password: password,
 	})
